@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ep1</title>
+  <link href="style.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script type="module" src="main.js"></script>
+</head>
+<body>
+  <section>
+    <div class="controles">
+      <label for="nuevaTarea">Agregue una tarea</label>
+      <input type="text" id="nuevaTarea" placeholder="Ingresa la tarea">
+      <label for="nuevoEncargado">Encargado</label>
+      <input type="text" id="nuevoEncargado" placeholder="Ingrese el encargado">
+      <label for="prioridadTarea">Prioridad</label>
+      <select id="prioridadTarea">
+        <option value="Alta">Alta</option>
+        <option value="Media">Media</option>
+        <option value="Baja">Baja</option>
+      </select>
+      <button  id="agregarTarea">Agregar Tarea</button>
+    </div>
+    <div class="lista">
+      <table id="tablaTareas">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Descripción de Tarea</th>
+          <th>Encargado</th>
+          <th>Prioridad</th>
+          <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody id="listaTareas">
+        </tbody>
+      </table>
+    </div>
+    <div id="galeria"> </div>
+  </section>
+</body>
+</html>
