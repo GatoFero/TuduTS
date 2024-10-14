@@ -2,150 +2,56 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: Verdana, Geneva, Tahoma, sans-serif
 }
-
-
 body {
-    background-color: dimgray;
-}
-
-.contenedor {
-    width: 1300px;
-    margin: auto;
-    background-color: white;
-    font-size: 20px;
-    font-family: sans-serif;
-}
-
-
-header {
-    background-color: black;
-    padding-top: 20px;
-    padding-bottom: 20px;
-}
-
-
-header div {
-    text-align: center;
-}
-
-
-nav {
-    background-color: forestgreen;
-}
-
-nav ul {
     display: flex;
-    justify-content: space-around;
-    padding: 5px;
-
-    list-style: none;
-}
-
-nav li {
-    width: 20%;
-}
-
-nav a {
-    display: block;
-    padding-top: 15px;
-    padding-bottom: 15px;
-    text-align: center;
-    color: white;
-    text-decoration: none;
-}
-
-nav a:hover {
-    background-color: black;
-}
-
-
-
-
-.banner {
-    margin-top: 5px;
-}
-
-
-section {
-
-    text-align: center;
-    padding-left: 50px;
-    padding-right: 50px;
-    margin-bottom: 50px;
-}
-
-article {
-    text-align: center;
-    padding: 20px;
-}
-
-
-footer {
-    display: flex;
-    justify-content: space-between;
-    padding-left: 150px;
-    padding-right: 50px;
-    padding-top: 20px;
-    padding-bottom: 20px;
-    background-color: black;
-}
-
-
-footer p {
-    color: white;
-    text-align: right;
-}
-
-
-table { border-collapse: collapse; width: 80%; margin:auto;
-    border: solid 1px gray; text-align: center;
-}
-
-tr:nth-child(even) {background-color: beige;}
-tr:nth-child(odd)  {background-color: white;}
-
-th, td { padding: 5px;}
-
-.borrar:hover { cursor: pointer;}
-
-button{
-    margin-left: 10px; font-size: 15px; padding: 5px;
-}
-
-input {padding: 10px;font-size: 20px; }
-
-.controles {
-    padding: 20px; background-color: azure; }
-
-
-/* Estilos para el popup */
-.popup {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    padding: 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-}
-
-.popup input[type="text"],
-.popup input[type="password"],
-.popup button {
-    display: block;
-    margin: 10px 0;
-}
-
-.popup-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
+    gap: 35px;
+    margin: auto;
+}
+.fields{
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: auto;
+}
+.field{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+button{
+    padding: 8px 15px;
+    background: #54b4fd;
+    color: white;
+    border: none;
+}
+th, td{
+    text-align: center;
+    padding: 10px;
+    border: 3px solid #0384e5;
+}
+th{
+    color: white;
+    background: #54b4fd;
+}
+table{
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+.baja{
+    color: #05bb05;
+}
+.alta{
+    color: #ff0000;
+}
+.media{
+    color: #ffc707;
 }
