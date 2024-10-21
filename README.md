@@ -14,5 +14,14 @@ atributos en su función principal RenderAssistsSystem. La funcion maneja
 el atributo date dependiendo si el usuario llena o no el campo fecha.
 
 ![img_1.png](documentation/img_1.png)
+Creacion de elementos y implementacion de las funciones para el cambio de
+orden, eliminacion y modificacion de las asistencias.
 
+![img_1.png](documentation/img_1.png)
+
+Validacion de los campos name y typeAssistance si contienen texto. Empaquetamiento
+de las funciones en un array para setear su logica en los iconos.
+
+![img_2.png](documentation/img_2.png)
+![img.png](documentation/img.png)
 Desarrollador: Oswaldo Maguiño Soto
