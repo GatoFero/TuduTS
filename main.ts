@@ -67,7 +67,6 @@ class AssistanceElements {
         fields.appendChild(this.createFieldAttribute(this.fieldDate, theadFields[1]))
         fields.appendChild(this.createFieldAttribute(this.fieldTypeAssistance, theadFields[2]));
         fields.appendChild(this.buttonAssists);
-
         this.theadFields = document.createElement('thead') as HTMLTableSectionElement;
         this.tableAssists = document.createElement('tbody') as HTMLTableSectionElement;
         const tableHtml = document.getElementById(table) as HTMLTableElement;
