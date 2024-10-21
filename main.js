@@ -1,32 +1,152 @@
 "use strict";
-class Task {
-    constructor(taskName, author, priority, expiration) {
-        this.edit = document.createElement('i');
-        this.delete = document.createElement('i');
-        this.up = document.createElement('i');
-        this.down = document.createElement('i');
-        this.author = author;
-        this.taskName = taskName;
-        this.priority = priority;
-        this.expiration = expiration;
-        this.setAttributeElement(this.edit, 'fas fa-edit');
-        this.setAttributeElement(this.delete, 'fas fa-trash');
-        this.setAttributeElement(this.up, 'fas fa-arrow-up');
-        this.setAttributeElement(this.down, 'fas fa-arrow-down');
+let assists = [];
+document.addEventListener('DOMContentLoaded', projectInit);
+function projectInit() {
+    const assistanceElements = new AssistanceElements('fields', 'tablaAsistencia');
+    if (localStorage.getItem('assists')) {
+        assists = JSON.parse(localStorage.getItem('assists'));
     }
-    setAttributeElement(element, icon) {
-        element.className = icon;
-        element.style.padding = '0 5px';
-        element.style.margin = '3px';
-        element.style.cursor = 'pointer';
+    const assistanceSystem = new AssistanceSystem(assists, assistanceElements);
+    assistanceSystem.renderAssistsSystem();
+}
+class Assistance {
+    constructor(name, date, typeAssistance) {
+        this.name = name;
+        this.date = date;
+        this.typeAssistance = typeAssistance;
     }
 }
-class TasksList {
-    constructor(tableTasks, tasks) {
-        this.tasks = tasks;
-        this.tableTasks = tableTasks;
-        this.tableTasks.tableButton.addEventListener('click', () => this.addTask(this.tableTasks.getName(), this.tableTasks.getEncargado(), this.tableTasks.getSelect(), this.tableTasks.getDate()));
-        this.tableTasks.renderTableTasks(this.tasks, this.sendFunctionalities());
+class AssistanceElements {
+    constructor(fieldsAttributes, table) {
+        this.fieldName = document.createElement('input');
+        this.fieldDate = document.createElement('input');
+        this.fieldDate.type = 'date';
+        this.fieldTypeAssistance = document.createElement('select');
+        const options = [
+            {
+                'icon': 'fa-solid fa-user-check',
+                'color': '#00e6a4',
+                'text': 'Presente'
+            },
+            {
+                'icon': 'fa-solid fa-user-clock',
+                'color': '#FFD43B',
+                'text': 'Tardanza'
+            },
+            {
+                'icon': 'fa-solid fa-user-xmark',
+                'color': '#FF0033',
+                'text': 'Falta'
+            }
+        ];
+        options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.icon + '.' + option.color;
+            optionElement.textContent = option.text;
+            this.fieldTypeAssistance.appendChild(optionElement);
+        });
+        this.buttonAssists = document.createElement('button');
+        this.buttonAssists.innerHTML = 'Añadir';
+        this.buttonAssists.classList.add('field');
+        const theadFields = ['Nombre y Apellido', 'Fecha', 'Asistencia', 'Actions'];
+        const fields = document.getElementById(fieldsAttributes);
+        fields.className = fieldsAttributes;
+        fields.appendChild(this.createFieldAttribute(this.fieldName, theadFields[0]));
+        fields.appendChild(this.createFieldAttribute(this.fieldDate, theadFields[1]));
+        fields.appendChild(this.createFieldAttribute(this.fieldTypeAssistance, theadFields[2]));
+        fields.appendChild(this.buttonAssists);
+        this.theadFields = document.createElement('thead');
+        this.tableAssists = document.createElement('tbody');
+        const tableHtml = document.getElementById(table);
+        const tr = document.createElement('tr');
+        theadFields.forEach((fieldName) => {
+            const th = document.createElement('th');
+            th.innerHTML = fieldName;
+            tr.appendChild(th);
+        });
+        this.theadFields.appendChild(tr);
+        tableHtml.appendChild(this.theadFields);
+        tableHtml.appendChild(this.tableAssists);
+    }
+    clearFields() {
+        this.fieldName.value = '';
+        this.fieldDate.value = '';
+        this.fieldTypeAssistance.value = '';
+    }
+    clearTable() {
+        this.tableAssists.innerHTML = '';
+    }
+    createFieldAttribute(field, label) {
+        const fieldLabel = document.createElement('label');
+        fieldLabel.innerHTML = label;
+        const div = document.createElement('div');
+        div.className = 'field';
+        div.appendChild(fieldLabel);
+        div.appendChild(field);
+        return div;
+    }
+}
+class AssistanceSystem {
+    constructor(assists, assistanceElements) {
+        this.assists = assists;
+        this.assistanceElements = assistanceElements;
+        this.assistanceElements.buttonAssists.addEventListener('click', () => {
+            const assist = new Assistance(this.assistanceElements.fieldName.value, this.assistanceElements.fieldDate.value, this.assistanceElements.fieldTypeAssistance.value);
+            this.addAssistance(assist);
+            this.assistanceElements.clearFields();
+        });
+    }
+    renderAssistsSystem() {
+        this.assistanceElements.clearTable();
+        this.assists.forEach((assistance, index) => {
+            const tr = document.createElement('tr');
+            tr.appendChild(this.createAssistanceField(assistance.name));
+            const date = assistance.date ? new Date(assistance.date) : new Date();
+            tr.appendChild(this.createAssistanceField(date.toLocaleDateString('en-ES', { year: 'numeric', month: '2-digit', day: '2-digit' })));
+            tr.appendChild(this.createAssistanceField(assistance.typeAssistance, true));
+            console.log(assistance.typeAssistance);
+            const fieldAction = this.createAssistanceField();
+            const iconsAction = ['fas fa-edit', 'fas fa-trash', 'fas fa-arrow-up', 'fas fa-arrow-down'];
+            iconsAction.forEach((icon, i) => {
+                fieldAction.appendChild(this.createIconAction(icon, index, this.sendFunctionalities()[i]));
+            });
+            tr.appendChild(fieldAction);
+            this.assistanceElements.tableAssists.appendChild(tr);
+        });
+        localStorage.setItem('assists', JSON.stringify(this.assists));
+    }
+    createIconAction(icon, position, functionality) {
+        const i = document.createElement('i');
+        i.className = icon;
+        i.style.padding = '0 5px';
+        i.style.margin = '3px';
+        i.style.cursor = 'pointer';
+        i.setAttribute("index", position.toString());
+        i.addEventListener('click', functionality);
+        return i;
+    }
+    createAssistanceField(content = '', select) {
+        const element = document.createElement('td');
+        if (select) {
+            const classname = content.split('.');
+            const i = document.createElement('i');
+            i.className = classname[0];
+            i.style.color = classname[1];
+            element.appendChild(i);
+        }
+        else
+            element.innerHTML = content;
+        return element;
+    }
+    addAssistance(assistance) {
+        if (!assistance.name)
+            alert("El campo nombre no debe estar vació.");
+        else if (!assistance.typeAssistance)
+            alert("Debe seleccionar la asistencia.");
+        else {
+            this.assists.push(assistance);
+            this.renderAssistsSystem();
+        }
     }
     sendFunctionalities() {
         return [
@@ -36,120 +156,44 @@ class TasksList {
             (event) => this.moveDownTask(event)
         ];
     }
-    addTask(nameTask, encargado, prioridad, expiration) {
-        if (nameTask !== '' && encargado != '' && prioridad != '' && expiration != '') {
-            const newTask = new Task(nameTask, encargado, prioridad, expiration);
-            this.tasks.push(newTask);
-            this.tableTasks.renderTableTasks(this.tasks, this.sendFunctionalities());
-        }
-    }
     deleteTask(event) {
-        const position = event.target.getAttribute("position");
-        if (position) {
-            this.tasks.splice(parseInt(position), 1);
-            this.tableTasks.renderTableTasks(this.tasks, this.sendFunctionalities());
+        const index = event.target.getAttribute("index");
+        if (index) {
+            this.assists.splice(parseInt(index), 1);
+            this.renderAssistsSystem();
         }
     }
     moveUpTask(event) {
-        const position = event.target.getAttribute("position");
-        if (position) {
-            if (parseInt(position) > 0) {
-                const targetTask = this.tasks[parseInt(position) - 1];
-                this.tasks[parseInt(position) - 1] = this.tasks[parseInt(position)];
-                this.tasks[parseInt(position)] = targetTask;
-                this.tableTasks.renderTableTasks(this.tasks, this.sendFunctionalities());
+        const index = event.target.getAttribute("index");
+        if (index) {
+            if (parseInt(index) > 0) {
+                const targetAssistance = this.assists[parseInt(index) - 1];
+                this.assists[parseInt(index) - 1] = this.assists[parseInt(index)];
+                this.assists[parseInt(index)] = targetAssistance;
+                this.renderAssistsSystem();
             }
         }
     }
     moveDownTask(event) {
-        const position = event.target.getAttribute("position");
-        if (position) {
-            if (parseInt(position) < this.tasks.length - 1) {
-                const targetTask = this.tasks[parseInt(position) + 1];
-                this.tasks[parseInt(position) + 1] = this.tasks[parseInt(position)];
-                this.tasks[parseInt(position)] = targetTask;
-                this.tableTasks.renderTableTasks(this.tasks, this.sendFunctionalities());
+        const index = event.target.getAttribute("index");
+        if (index) {
+            if (parseInt(index) < this.assists.length - 1) {
+                const targetAssistance = this.assists[parseInt(index) + 1];
+                this.assists[parseInt(index) + 1] = this.assists[parseInt(index)];
+                this.assists[parseInt(index)] = targetAssistance;
+                this.renderAssistsSystem();
             }
         }
     }
     updateTask(event) {
-        const position = event.target.getAttribute("position");
-        if (position) {
-            this.tasks[parseInt(position)].taskName = this.tableTasks.getName();
-            this.tasks[parseInt(position)].author = this.tableTasks.getEncargado();
-            this.tasks[parseInt(position)].priority = this.tableTasks.getSelect();
-            this.tasks[parseInt(position)].expiration = this.tableTasks.getDate();
-            this.tableTasks.renderTableTasks(this.tasks, this.sendFunctionalities());
+        const index = event.target.getAttribute("index");
+        if (index) {
+            if (this.assistanceElements.fieldName.value != '')
+                this.assists[parseInt(index)].name = this.assistanceElements.fieldName.value;
+            this.assists[parseInt(index)].date = this.assistanceElements.fieldDate.value;
+            if (this.assistanceElements.fieldTypeAssistance.value != this.assists[parseInt(index)].typeAssistance)
+                this.assists[parseInt(index)].typeAssistance = this.assistanceElements.fieldTypeAssistance.value;
+            this.renderAssistsSystem();
         }
-    }
-}
-class Table {
-    constructor(tableBody, tableButton, tableInputName, tableInputEncargado, tableSelect, tableDate) {
-        this.tableBody = document.getElementById(tableBody);
-        this.tableButton = document.getElementById(tableButton);
-        this.tableInputName = document.getElementById(tableInputName);
-        this.tableInputEncargado = document.getElementById(tableInputEncargado);
-        this.tableSelect = document.getElementById(tableSelect);
-        this.tableDate = document.getElementById(tableDate);
-    }
-    getName() {
-        return this.tableInputName.value;
-    }
-    getEncargado() {
-        return this.tableInputEncargado.value;
-    }
-    getSelect() {
-        return this.tableSelect.value;
-    }
-    getDate() {
-        return this.tableDate.value;
-    }
-    renderTableTasks(tasks, functionalities) {
-        this.tableBody.innerHTML = '';
-        this.tableInputEncargado.value = '';
-        this.tableInputName.value = '';
-        this.tableDate.value = '';
-        tasks.forEach((task, index) => {
-            const tr = document.createElement('tr');
-            const fieldAction = this.setFieldsTask();
-            const elementsFunctionality = [task.edit, task.delete, task.up, task.down];
-            elementsFunctionality.forEach((element, idx) => {
-                this.setChildTr(fieldAction, element, index.toString(), functionalities[idx]);
-            });
-            tr.appendChild(this.setFieldsTask((index + 1).toString(), 'fieldId'));
-            tr.appendChild(this.setFieldsTask(task.taskName));
-            tr.appendChild(this.setFieldsTask(task.author));
-            tr.appendChild(this.setFieldsTask(task.priority, task.priority.toLowerCase()));
-            const date = new Date(task.expiration);
-            tr.appendChild(this.setFieldsTask(date.toLocaleDateString('en-ES', { year: 'numeric', month: '2-digit', day: '2-digit' })));
-            tr.appendChild(fieldAction);
-            this.tableBody.appendChild(tr);
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-        });
-    }
-    setFieldsTask(content, className) {
-        const element = document.createElement('td');
-        if (content)
-            element.innerHTML = content;
-        if (className)
-            element.classList.add(className);
-        return element;
-    }
-    setChildTr(field, element, position, functionality) {
-        element.setAttribute("position", position);
-        const newElement = element.cloneNode(true);
-        newElement.addEventListener('click', functionality);
-        field.appendChild(newElement);
-    }
-}
-let tasks = [];
-document.addEventListener('DOMContentLoaded', projectInit);
-function projectInit() {
-    const tableTask = new Table("listaTareas", "agregarTarea", "nuevaTarea", "nuevoEncargado", "prioridadTarea", "dateTask");
-    if (localStorage.getItem('tasks')) {
-        const savedTasks = JSON.parse(localStorage.getItem('tasks'));
-        tasks = savedTasks.map((taskData) => new Task(taskData.taskName, taskData.author, taskData.priority, taskData.expiration));
-        const taskList = new TasksList(tableTask, tasks);
-        taskList.tableTasks.renderTableTasks(taskList.tasks, taskList.sendFunctionalities());
     }
 }

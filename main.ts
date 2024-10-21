@@ -1,42 +1,179 @@
-class Task {
-    taskName: string;
-    author: string;
-    priority: string;
-    expiration: string;
-    edit: HTMLElement = document.createElement('i');
-    delete: HTMLElement = document.createElement('i');
-    up: HTMLElement = document.createElement('i');
-    down: HTMLElement = document.createElement('i');
+let assists: Assistance[] = [];
+document.addEventListener('DOMContentLoaded', projectInit);
 
-    constructor(taskName: string, author: string, priority: string, expiration: string) {
-        this.author = author;
-        this.taskName = taskName;
-        this.priority = priority;
-        this.expiration = expiration;
-        this.setAttributeElement(this.edit, 'fas fa-edit');
-        this.setAttributeElement(this.delete, 'fas fa-trash');
-        this.setAttributeElement(this.up, 'fas fa-arrow-up');
-        this.setAttributeElement(this.down, 'fas fa-arrow-down');
+function projectInit(): void {
+    const assistanceElements = new AssistanceElements('fields', 'tablaAsistencia');
+    if (localStorage.getItem('assists')){
+        assists = JSON.parse(<string>localStorage.getItem('assists'));
     }
+    const assistanceSystem = new AssistanceSystem(assists, assistanceElements);
+    assistanceSystem.renderAssistsSystem();
+}
 
-    private setAttributeElement(element: HTMLElement, icon: string): void {
-        element.className = icon;
-        element.style.padding = '0 5px';
-        element.style.margin = '3px';
-        element.style.cursor = 'pointer';
+class Assistance {
+    name: string;
+    date: string;
+    typeAssistance: string;
+
+    constructor(name: string, date: string, typeAssistance: string) {
+        this.name = name;
+        this.date = date;
+        this.typeAssistance = typeAssistance;
     }
 }
 
-class TasksList {
-    tasks: Task[];
-    tableTasks: Table;
+class AssistanceElements {
+    fieldName: HTMLInputElement;
+    fieldDate: HTMLInputElement;
+    fieldTypeAssistance: HTMLSelectElement;
+    theadFields: HTMLTableSectionElement;
+    tableAssists: HTMLTableSectionElement;
+    buttonAssists: HTMLButtonElement;
 
-    constructor(tableTasks: Table, tasks: Task[]) {
-        this.tasks = tasks;
-        this.tableTasks = tableTasks;
-        this.tableTasks.tableButton.addEventListener('click', () => this.addTask(this.tableTasks.getName()
-            , this.tableTasks.getEncargado(),this.tableTasks.getSelect(), this.tableTasks.getDate()));
-        this.tableTasks.renderTableTasks(this.tasks, this.sendFunctionalities());
+    constructor(fieldsAttributes: string, table: string) {
+        this.fieldName = document.createElement('input') as HTMLInputElement;
+        this.fieldDate = document.createElement('input') as HTMLInputElement;
+        this.fieldDate.type = 'date';
+        this.fieldTypeAssistance = document.createElement('select') as HTMLSelectElement;
+        const options = [
+            {
+                'icon': 'fa-solid fa-user-check',
+                'color': '#00e6a4',
+                'text': 'Presente'
+            },
+            {
+                'icon': 'fa-solid fa-user-clock',
+                'color': '#FFD43B',
+                'text': 'Tardanza'
+            },
+            {
+                'icon': 'fa-solid fa-user-xmark',
+                'color': '#FF0033',
+                'text': 'Falta'
+            }];
+        options.forEach(option => {
+            const optionElement = document.createElement('option') as HTMLOptionElement;
+            optionElement.value = option.icon + '.' + option.color;
+            optionElement.textContent = option.text;
+            this.fieldTypeAssistance.appendChild(optionElement);
+        });
+        this.buttonAssists = document.createElement('button') as HTMLButtonElement;
+        this.buttonAssists.innerHTML = 'Añadir';
+        this.buttonAssists.classList.add('field');
+        const theadFields = ['Nombre y Apellido', 'Fecha', 'Asistencia', 'Actions'];
+        const fields = document.getElementById(fieldsAttributes) as HTMLDivElement;
+        fields.className = fieldsAttributes;
+        fields.appendChild(this.createFieldAttribute(this.fieldName, theadFields[0]))
+        fields.appendChild(this.createFieldAttribute(this.fieldDate, theadFields[1]))
+        fields.appendChild(this.createFieldAttribute(this.fieldTypeAssistance, theadFields[2]));
+        fields.appendChild(this.buttonAssists);
+
+        this.theadFields = document.createElement('thead') as HTMLTableSectionElement;
+        this.tableAssists = document.createElement('tbody') as HTMLTableSectionElement;
+        const tableHtml = document.getElementById(table) as HTMLTableElement;
+        const tr = document.createElement('tr');
+
+        theadFields.forEach((fieldName: string) => {
+            const th = document.createElement('th');
+            th.innerHTML = fieldName;
+            tr.appendChild(th);
+        })
+        this.theadFields.appendChild(tr);
+        tableHtml.appendChild(this.theadFields);
+        tableHtml.appendChild(this.tableAssists);
+    }
+
+    clearFields(): void {
+        this.fieldName.value = '';
+        this.fieldDate.value = '';
+        this.fieldTypeAssistance.value = '';
+    }
+
+    clearTable(): void {
+        this.tableAssists.innerHTML = '';
+    }
+
+    createFieldAttribute(field: HTMLElement, label: string): HTMLDivElement{
+        const fieldLabel = document.createElement('label') as HTMLLabelElement;
+        fieldLabel.innerHTML = label;
+        const div = document.createElement('div') as HTMLDivElement;
+        div.className = 'field';
+        div.appendChild(fieldLabel);
+        div.appendChild(field);
+        return div;
+    }
+}
+
+class AssistanceSystem {
+    assists: Assistance[];
+    assistanceElements: AssistanceElements;
+
+    constructor(assists: Assistance[], assistanceElements: AssistanceElements) {
+        this.assists = assists;
+        this.assistanceElements = assistanceElements;
+        this.assistanceElements.buttonAssists.addEventListener('click', () => {
+            const assist = new Assistance(this.assistanceElements.fieldName.value,
+                    this.assistanceElements.fieldDate.value,
+                    this.assistanceElements.fieldTypeAssistance.value);
+            this.addAssistance(assist);
+            this.assistanceElements.clearFields();
+        });
+    }
+
+    renderAssistsSystem(): void {
+        this.assistanceElements.clearTable();
+        this.assists.forEach((assistance, index) => {
+            const tr = document.createElement('tr');
+            tr.appendChild(this.createAssistanceField(assistance.name));
+            const date = assistance.date? new Date(assistance.date) : new Date();
+            tr.appendChild(this.createAssistanceField(
+                date.toLocaleDateString('en-ES', { year: 'numeric', month: '2-digit', day: '2-digit' })));
+            tr.appendChild(this.createAssistanceField(assistance.typeAssistance, true));
+            console.log(assistance.typeAssistance);
+            const fieldAction = this.createAssistanceField();
+            const iconsAction = ['fas fa-edit', 'fas fa-trash', 'fas fa-arrow-up', 'fas fa-arrow-down'];
+            iconsAction.forEach((icon, i) => {
+                fieldAction.appendChild(this.createIconAction(icon, index, this.sendFunctionalities()[i]))
+            })
+            tr.appendChild(fieldAction);
+            this.assistanceElements.tableAssists.appendChild(tr);
+        });
+        localStorage.setItem('assists', JSON.stringify(this.assists));
+    }
+
+    createIconAction(icon: string, position: number, functionality: EventListenerOrEventListenerObject): HTMLElement{
+        const i = document.createElement('i');
+        i.className = icon;
+        i.style.padding = '0 5px';
+        i.style.margin = '3px';
+        i.style.cursor = 'pointer';
+        i.setAttribute("index", position.toString())
+        i.addEventListener('click', functionality);
+        return i;
+    }
+
+    createAssistanceField(content: string = '', select?: boolean): HTMLElement {
+        const element = document.createElement('td');
+        if (select) {
+            const classname = content.split('.');
+            const i = document.createElement('i');
+            i.className = classname[0];
+            i.style.color = classname[1];
+            element.appendChild(i);
+
+        } else element.innerHTML = content;
+        return element;
+    }
+
+    addAssistance(assistance: Assistance): void {
+        if (!assistance.name)
+            alert("El campo nombre no debe estar vació.")
+        else if (!assistance.typeAssistance)
+            alert("Debe seleccionar la asistencia.")
+        else{
+            this.assists.push(assistance);
+            this.renderAssistsSystem();
+        }
     }
 
     sendFunctionalities(): EventListenerOrEventListenerObject[]{
@@ -48,141 +185,47 @@ class TasksList {
         ];
     }
 
-    addTask(nameTask: string, encargado: string, prioridad: string, expiration: string): void {
-        if (nameTask !== '' && encargado != '' && prioridad != '' && expiration != '') {
-            const newTask = new Task(nameTask, encargado, prioridad, expiration);
-            this.tasks.push(newTask);
-            this.tableTasks.renderTableTasks(this.tasks, this.sendFunctionalities());
-        }
-    }
-
     deleteTask(event: Event): void {
-        const position = (event.target as HTMLElement).getAttribute("position");
-        if(position){
-            this.tasks.splice(parseInt(position), 1);
-            this.tableTasks.renderTableTasks(this.tasks, this.sendFunctionalities());
+        const index = (event.target as HTMLElement).getAttribute("index");
+        if(index){
+            this.assists.splice(parseInt(index), 1);
+            this.renderAssistsSystem()
         }
     }
 
     moveUpTask(event: Event): void {
-        const position = (event.target as HTMLElement).getAttribute("position");
-        if(position){
-            if(parseInt(position) > 0){
-                const targetTask = this.tasks[parseInt(position) - 1];
-                this.tasks[parseInt(position) - 1] = this.tasks[parseInt(position)];
-                this.tasks[parseInt(position)] = targetTask;
-                this.tableTasks.renderTableTasks(this.tasks, this.sendFunctionalities());
+        const index = (event.target as HTMLElement).getAttribute("index");
+        if(index){
+            if(parseInt(index) > 0){
+                const targetAssistance = this.assists[parseInt(index) - 1];
+                this.assists[parseInt(index) - 1] = this.assists[parseInt(index)];
+                this.assists[parseInt(index)] = targetAssistance;
+                this.renderAssistsSystem();
             }
         }
     }
 
     moveDownTask(event: Event): void {
-        const position = (event.target as HTMLElement).getAttribute("position");
-        if(position){
-            if(parseInt(position) < this.tasks.length - 1){
-                const targetTask = this.tasks[parseInt(position) + 1];
-                this.tasks[parseInt(position) + 1] = this.tasks[parseInt(position)];
-                this.tasks[parseInt(position)] = targetTask;
-                this.tableTasks.renderTableTasks(this.tasks, this.sendFunctionalities());
+        const index = (event.target as HTMLElement).getAttribute("index");
+        if(index){
+            if(parseInt(index) < this.assists.length - 1){
+                const targetAssistance = this.assists[parseInt(index) + 1];
+                this.assists[parseInt(index) + 1] = this.assists[parseInt(index)];
+                this.assists[parseInt(index)] = targetAssistance;
+                this.renderAssistsSystem()
             }
         }
     }
 
     updateTask(event: Event): void {
-        const position = (event.target as HTMLElement).getAttribute("position");
-        if(position){
-            this.tasks[parseInt(position)].taskName = this.tableTasks.getName();
-            this.tasks[parseInt(position)].author = this.tableTasks.getEncargado();
-            this.tasks[parseInt(position)].priority = this.tableTasks.getSelect();
-            this.tasks[parseInt(position)].expiration = this.tableTasks.getDate();
-            this.tableTasks.renderTableTasks(this.tasks, this.sendFunctionalities());
+        const index = (event.target as HTMLElement).getAttribute("index");
+        if(index){
+            if (this.assistanceElements.fieldName.value != '')
+                this.assists[parseInt(index)].name = this.assistanceElements.fieldName.value;
+            this.assists[parseInt(index)].date = this.assistanceElements.fieldDate.value;
+            if (this.assistanceElements.fieldTypeAssistance.value != this.assists[parseInt(index)].typeAssistance)
+                this.assists[parseInt(index)].typeAssistance = this.assistanceElements.fieldTypeAssistance.value;
+            this.renderAssistsSystem();
         }
-    }
-}
-
-class Table {
-    tableBody: HTMLTableSectionElement;
-    tableButton: HTMLButtonElement;
-    tableInputName: HTMLInputElement;
-    tableInputEncargado: HTMLInputElement;
-    tableSelect: HTMLSelectElement;
-    tableDate: HTMLInputElement;
-
-    constructor(tableBody: string, tableButton: string,
-                tableInputName: string, tableInputEncargado: string,
-                tableSelect: string, tableDate: string) {
-        this.tableBody = document.getElementById(tableBody) as HTMLTableSectionElement;
-        this.tableButton = document.getElementById(tableButton) as HTMLButtonElement;
-        this.tableInputName = document.getElementById(tableInputName) as HTMLInputElement;
-        this.tableInputEncargado = document.getElementById(tableInputEncargado) as HTMLInputElement;
-        this.tableSelect = document.getElementById(tableSelect) as HTMLSelectElement;
-        this.tableDate = document.getElementById(tableDate) as HTMLInputElement;
-    }
-
-    getName(): string {
-        return this.tableInputName.value;
-    }
-    getEncargado(): string{
-        return this.tableInputEncargado.value;
-    }
-    getSelect(): string{
-        return this.tableSelect.value;
-    }
-    getDate(): string{
-        return this.tableDate.value;
-    }
-
-    renderTableTasks(tasks: Task[], functionalities: EventListenerOrEventListenerObject[]): void {
-        this.tableBody.innerHTML = '';
-        this.tableInputEncargado.value = '';
-        this.tableInputName.value = '';
-        this.tableDate.value = '';
-        tasks.forEach((task, index) => {
-            const tr = document.createElement('tr');
-            const fieldAction = this.setFieldsTask();
-            const elementsFunctionality = [task.edit, task.delete, task.up, task.down];
-            elementsFunctionality.forEach((element, idx) => {
-                this.setChildTr(fieldAction, element, index.toString(), functionalities[idx]);
-            });
-
-            tr.appendChild(this.setFieldsTask((index + 1).toString(), 'fieldId'));
-            tr.appendChild(this.setFieldsTask(task.taskName));
-            tr.appendChild(this.setFieldsTask(task.author));
-            tr.appendChild(this.setFieldsTask(task.priority, task.priority.toLowerCase()));
-            const date = new Date(task.expiration);
-            tr.appendChild(this.setFieldsTask(date.toLocaleDateString('en-ES', { year: 'numeric', month: '2-digit', day: '2-digit' })));
-            tr.appendChild(fieldAction);
-            this.tableBody.appendChild(tr);
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-        });
-    }
-
-    setFieldsTask(content?: string, className?: string): HTMLElement {
-        const element = document.createElement('td');
-        if (content) element.innerHTML = content;
-        if (className) element.classList.add(className);
-        return element;
-    }
-
-    setChildTr(field: HTMLElement, element: HTMLElement, position: string, functionality: EventListenerOrEventListenerObject): void {
-        element.setAttribute("position", position)
-        const newElement = element.cloneNode(true) as HTMLElement;
-        newElement.addEventListener('click', functionality);
-        field.appendChild(newElement);
-    }
-}
-
-
-let tasks: Task[] = [];
-
-document.addEventListener('DOMContentLoaded', projectInit);
-
-function projectInit(): void {
-    const tableTask: Table = new Table("listaTareas", "agregarTarea", "nuevaTarea", "nuevoEncargado", "prioridadTarea", "dateTask");
-    if (localStorage.getItem('tasks')) {
-        const savedTasks = JSON.parse(<string>localStorage.getItem('tasks'));
-        tasks = savedTasks.map((taskData: any) => new Task(taskData.taskName, taskData.author, taskData.priority, taskData.expiration));
-        const taskList: TasksList = new TasksList(tableTask, tasks);
-        taskList.tableTasks.renderTableTasks(taskList.tasks, taskList.sendFunctionalities());
     }
 }
